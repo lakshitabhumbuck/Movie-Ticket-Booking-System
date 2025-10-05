@@ -1,6 +1,5 @@
 # Movie Ticket Booking System
 
-A comprehensive Django REST API for movie ticket booking with JWT authentication, built for a backend developer intern assignment.
 
 ## 🚀 Features
 
@@ -11,14 +10,14 @@ A comprehensive Django REST API for movie ticket booking with JWT authentication
 - **Booking Management**: View and cancel bookings
 - **Swagger Documentation**: Complete API documentation
 - **Admin Interface**: Django admin for data management
-- **Unit Tests**: Comprehensive test coverage
+-
 
 ## 🛠 Tech Stack
 
 - **Backend**: Python, Django, Django REST Framework
 - **Authentication**: JWT (djangorestframework-simplejwt)
 - **Documentation**: Swagger/OpenAPI (drf-spectacular)
-- **Database**: SQLite (default), easily configurable for PostgreSQL/MySQL
+- **Database**: SQLite 
 
 ## 📋 API Endpoints
 
@@ -182,15 +181,6 @@ curl -X POST http://localhost:8000/api/bookings/1/cancel/ \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-## 📚 Swagger Documentation
-
-Visit `http://localhost:8000/swagger/` for interactive API documentation.
-
-To authenticate in Swagger:
-1. Click the "Authorize" button
-2. Enter: `Bearer YOUR_ACCESS_TOKEN`
-3. Click "Authorize"
-
 ## ✅ Business Rules Implemented
 
 - **Double Booking Prevention**: A seat cannot be booked twice for the same show
@@ -199,20 +189,6 @@ To authenticate in Swagger:
 - **Cancellation**: Cancelling a booking frees up the seat
 - **User Authorization**: Users can only cancel their own bookings
 - **Show Capacity**: Real-time calculation of available seats
-
-## 🧪 Testing
-
-Run the test suite:
-```bash
-python manage.py test
-```
-
-The tests cover:
-- Model validation and business logic
-- API endpoint functionality
-- Authentication and authorization
-- Booking validation rules
-- Error handling
 
 ## 🗄 Database Models
 
@@ -238,26 +214,6 @@ The tests cover:
 - `status`: 'booked' or 'cancelled'
 - `created_at`, `updated_at`: Timestamps
 
-## 🔒 Security Features
-
-- JWT token-based authentication
-- User authorization checks
-- Input validation and sanitization
-- SQL injection prevention (Django ORM)
-- CSRF protection
-- Secure password handling
-
-## 🚀 Deployment
-
-For production deployment:
-
-1. Set `DEBUG = False` in settings.py
-2. Configure a production database (PostgreSQL recommended)
-3. Set up proper secret key and allowed hosts
-4. Configure static files serving
-5. Use environment variables for sensitive data
-6. Set up SSL/HTTPS
-7. Configure proper logging
 
 ## 📝 Admin Interface
 
@@ -266,18 +222,6 @@ Access the Django admin at `http://localhost:8000/admin/` to:
 - View and manage bookings
 - Monitor system usage
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
-
-## 📄 License
-
-This project is part of a backend developer intern assignment.
 
 ---
 
