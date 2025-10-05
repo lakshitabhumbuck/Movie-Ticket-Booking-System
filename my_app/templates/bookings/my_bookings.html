@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Bookings - MovieHub{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-ticket-alt me-2"></i>My Bookings</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" onclick="refreshBookings()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="fas fa-film"></i> Book More Tickets
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="bookingsContainer">
+    <!-- Bookings will be loaded here -->
+</div>
+
+<div class="row d-none" id="noBookingsContainer">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            You don't have any bookings yet.
+            <a href="{% url 'home' %}" class="alert-link">Book your first ticket!</a>
+        </div>
+    </div>
+</div>
+
+<div class="row d-none" id="loginRequiredContainer">
+    <div class="col-12">
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Please login to view your bookings.
+            <button class="btn btn-primary ms-2" onclick="showLoginModal()">Login</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Simple my bookings page
+document.addEventListener('DOMContentLoaded', function() {
+    loadBookings();
+});
+
+function loadBookings() {
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+        showLoginRequired();
+        return;
+    }
+    
+    fetch('/api/my-bookings-api/', {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayBookings(data.results || data);
+    })
+    .catch(error => {
+        showAlert('Error loading bookings: ' + error.message, 'danger');
+    });
+}
+
+function displayBookings(bookings) {
+    const container = document.getElementById('bookingsContainer');
+    const noBookingsContainer = document.getElementById('noBookingsContainer');
+    const loginRequiredContainer = document.getElementById('loginRequiredContainer');
+    
+    container.classList.add('d-none');
+    noBookingsContainer.classList.add('d-none');
+    loginRequiredContainer.classList.add('d-none');
+    
+    if (bookings.length === 0) {
+        noBookingsContainer.classList.remove('d-none');
+        return;
+    }
+    
+    container.classList.remove('d-none');
+    
+    const groupedBookings = groupBookingsByShow(bookings);
+    
+    container.innerHTML = Object.entries(groupedBookings).map(([showId, showBookings]) => {
+        const firstBooking = showBookings[0];
+        const show = firstBooking.show;
+        const movie = show.movie;
+        
+        return `
+            <div class="col-12 mb-4">
+                <div class="card booking-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-film me-2"></i>${movie.title}
+                            </h5>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                ${movie.duration_minutes} minutes
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge ${firstBooking.status === 'booked' ? 'bg-success' : 'bg-secondary'}">${firstBooking.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Show Details</h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-tv me-1"></i>
+                                    <strong>Screen:</strong> ${show.screen_name}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    <strong>Date:</strong> ${new Date(show.date_time).toLocaleDateString()}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <strong>Time:</strong> ${new Date(show.date_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Booking Details</h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-chair me-1"></i>
+                                    <strong>Seats:</strong> ${showBookings.map(b => b.seat_number).join(', ')}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar-plus me-1"></i>
+                                    <strong>Booked:</strong> ${new Date(firstBooking.created_at).toLocaleString()}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    <strong>Booking ID:</strong> ${firstBooking.id}
+                                </p>
+                            </div>
+                        </div>
+                        ${firstBooking.status === 'booked' ? `
+                            <div class="mt-3">
+                                <button class="btn btn-danger btn-sm" onclick="cancelBooking(${firstBooking.id})">
+                                    <i class="fas fa-times me-1"></i>Cancel Booking
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function groupBookingsByShow(bookings) {
+    return bookings.reduce((groups, booking) => {
+        const showId = booking.show.id;
+        if (!groups[showId]) {
+            groups[showId] = [];
+        }
+        groups[showId].push(booking);
+        return groups;
+    }, {});
+}
+
+function cancelBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+        return;
+    }
+    
+    fetch(`/api/bookings/${bookingId}/cancel/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showAlert(data.message, 'success');
+            loadBookings();
+        } else {
+            showAlert('Cancellation failed: ' + (data.error || 'Unknown error'), 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Cancellation failed: ' + error.message, 'danger');
+    });
+}
+
+function showLoginRequired() {
+    document.getElementById('loginRequiredContainer').classList.remove('d-none');
+}
+
+function refreshBookings() {
+    loadBookings();
+    showAlert('Bookings refreshed!', 'info');
+}
+
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.querySelector('main .container').insertBefore(alertDiv, document.querySelector('main .container').firstChild);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+</script>
+{% endblock %}
