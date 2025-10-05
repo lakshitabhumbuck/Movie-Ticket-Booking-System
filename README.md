@@ -86,41 +86,6 @@
    python manage.py runserver
    ```
 
-
-## 🔐 JWT Authentication
-
-### Getting JWT Tokens
-
-1. **Register a new user:**
-   ```bash
-   curl -X POST http://localhost:8000/api/signup/ \
-     -H "Content-Type: application/json" \
-     -d '{
-       "username": "testuser",
-       "email": "test@example.com",
-       "password": "testpass123",
-       "password_confirm": "testpass123",
-       "first_name": "Test",
-       "last_name": "User"
-     }'
-   ```
-
-2. **Login to get tokens:**
-   ```bash
-   curl -X POST http://localhost:8000/api/login/ \
-     -H "Content-Type: application/json" \
-     -d '{
-       "username": "testuser",
-       "password": "testpass123"
-     }'
-   ```
-
-### Using JWT Tokens
-
-Include the access token in the Authorization header for protected endpoints:
-```bash
-curl -X GET http://localhost:8000/api/movies/ \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ## 📖 API Usage Examples
@@ -223,7 +188,3 @@ Access the Django admin at `http://localhost:8000/admin/` to:
 
 
 ---
-
-**API Documentation**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
-
-**ReDoc Documentation**: [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
